@@ -1,0 +1,13 @@
+# Java
+/target/
+*.log
+*.class
+*.jar
+*.war
+*.iml
+.idea/
+
+# Environment
+.env
+application.properties
+application.yml
