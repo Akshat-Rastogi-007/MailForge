@@ -1,5 +1,6 @@
 package com.rastogi.mailforge.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -11,7 +12,6 @@ import java.util.List;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
     private String name;
     private String password;
@@ -21,9 +21,11 @@ public class User {
     private List<String> role = new ArrayList<>();
 
     @OneToMany(mappedBy = "sender")
+    @JsonIgnore
     private List<Email> sentMails;
 
     @OneToMany(mappedBy = "receiver")
+    @JsonIgnore
     private List<Email> receivedMails;
 
     private boolean verified = false;

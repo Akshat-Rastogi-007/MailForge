@@ -31,12 +31,12 @@ public class EmailService {
         String result;
         try{
             Email map = modelMapper.map(emailDto, Email.class);
-            Optional<User> from = userRepo.findByMailAddress(map.getFrom());
+            Optional<User> from = userRepo.findByMailAddress(map.getSenderAddress());
             if (from.isPresent()) {
                 from.get().getSentMails().add(map);
                 userRepo.save(from.get());
             }
-            Optional<User> to = userRepo.findByMailAddress(map.getTo());
+            Optional<User> to = userRepo.findByMailAddress(map.getReceiverAddress());
             if (to.isPresent()) {
                 to.get().getReceivedMails().add(map);
                 userRepo.save(to.get());

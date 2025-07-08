@@ -23,6 +23,7 @@ public class UserCrudService {
 
     private static final Logger log = LoggerFactory.getLogger("usercreation");
 
+    static int ids= 0;
     public UserCrudService(UserRepo userRepo, ModelMapper modelMapper, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepo = userRepo;
         this.modelMapper = modelMapper;
@@ -35,6 +36,7 @@ public class UserCrudService {
             User map = modelMapper.map(userDto, User.class);
             // here phone verification will take place
             map.setMailAddress(map.getMailAddress() + "@mailforge.local");
+            map.setId("USER-"+ map.getMailAddress() + ++ids);
             map.setPassword(bCryptPasswordEncoder.encode(userDto.getPassword()));
             map.getRole().add("ROLE_USER");
             userRepo.save(map);
