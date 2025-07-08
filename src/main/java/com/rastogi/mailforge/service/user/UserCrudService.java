@@ -3,7 +3,7 @@ package com.rastogi.mailforge.service.user;
 import com.rastogi.mailforge.dto.UserDto;
 import com.rastogi.mailforge.dto.respose.UserResponseDto;
 import com.rastogi.mailforge.entity.User;
-import com.rastogi.mailforge.rerpository.UserRepo;
+import com.rastogi.mailforge.repository.UserRepo;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserCrudService {
@@ -33,12 +34,14 @@ public class UserCrudService {
         try {
             User map = modelMapper.map(userDto, User.class);
             // here phone verification will take place
+            map.setMailAddress(map.getMailAddress() + "@mailforge.local");
             map.setPassword(bCryptPasswordEncoder.encode(userDto.getPassword()));
+            map.getRole().add("ROLE_USER");
             userRepo.save(map);
             log.info("Created user with mail address {}", map.getMailAddress());
             result = "User Created Successfully";
         } catch (Exception e) {
-            log.error("Created user with mail address {}", userDto.getMailAddress());
+            log.error("Error while creating user with mail address {}", userDto.getMailAddress());
             result = "Error while creating user";
         }
         return result;
@@ -64,10 +67,15 @@ public class UserCrudService {
     public String changeMailAddress(String newMailAddress) {
         String result;
         try {
-            User byMailAddress = userRepo.findByMailAddress(newMailAddress);
-            byMailAddress.setMailAddress(newMailAddress);
-            userRepo.save(byMailAddress);
-            result = "Saved";
+            Optional<User> byMailAddress = userRepo.findByMailAddress(newMailAddress);
+            if (byMailAddress.isPresent()) {
+                byMailAddress.get().setMailAddress(newMailAddress);
+                userRepo.save(byMailAddress.get());
+                result = "Saved";
+            }
+            else {
+                result = "User with mail address " + newMailAddress + " not found";
+            }
         }
         catch (Exception e){
             result = "Error while changing user mail address";
@@ -87,6 +95,23 @@ public class UserCrudService {
 //        }
 //    }
 
+    public Boolean doesUserExist(String mailAddress) {
+        try{
+            Optional<User> byMailAddress = userRepo.findByMailAddress(mailAddress);
+            if (byMailAddress.isPresent()) {
+                log.info("User with mail address {} exists", mailAddress);
+                return true;
+            }
+            else {
+                log.info("User with mail address {} not found", mailAddress);
+                return false;
+            }
+        }
+        catch (Exception e){
+            log.error("User checking failed due to {}", e.getMessage());
+        }
+        return false;
+    }
 
 
 }

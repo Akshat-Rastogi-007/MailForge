@@ -1,4 +1,4 @@
-package com.rastogi.mailforge.rerpository;
+package com.rastogi.mailforge.repository;
 
 import com.rastogi.mailforge.entity.Email;
 import org.springframework.data.jpa.repository.JpaRepository;

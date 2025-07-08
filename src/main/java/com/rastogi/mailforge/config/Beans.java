@@ -1,4 +1,4 @@
-package com.rastogi.mailforge.appConfig;
+package com.rastogi.mailforge.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

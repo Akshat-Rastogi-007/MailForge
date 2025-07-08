@@ -27,7 +27,9 @@ public class UserDetailImpl implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         HashSet<SimpleGrantedAuthority> hs = new HashSet<>();
-        hs.add(new SimpleGrantedAuthority(user.getRole()));
+        for (String role : user.getRole()) {
+            hs.add(new SimpleGrantedAuthority(role));
+        }
         return hs;
     }
 

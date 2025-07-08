@@ -3,6 +3,7 @@ package com.rastogi.mailforge.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -17,9 +18,13 @@ public class User {
     private String mailAddress;
     private String phone;
 
+    private List<String> role = new ArrayList<>();
+
     @OneToMany(mappedBy = "sender")
     private List<Email> sentMails;
 
     @OneToMany(mappedBy = "receiver")
     private List<Email> receivedMails;
+
+    private boolean verified = false;
 }

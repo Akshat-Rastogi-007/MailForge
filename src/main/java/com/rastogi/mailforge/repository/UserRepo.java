@@ -1,11 +1,13 @@
-package com.rastogi.mailforge.rerpository;
+package com.rastogi.mailforge.repository;
 
 import com.rastogi.mailforge.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface UserRepo extends JpaRepository<User, String> {
 
-    User findByMailAddress(String mailAddress);
+    Optional<User> findByMailAddress(String mailAddress);
 }

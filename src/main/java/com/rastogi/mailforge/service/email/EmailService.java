@@ -3,14 +3,15 @@ package com.rastogi.mailforge.service.email;
 import com.rastogi.mailforge.dto.EmailDto;
 import com.rastogi.mailforge.entity.Email;
 import com.rastogi.mailforge.entity.User;
-import com.rastogi.mailforge.rerpository.EmailRepo;
-import com.rastogi.mailforge.rerpository.UserRepo;
+import com.rastogi.mailforge.repository.EmailRepo;
+import com.rastogi.mailforge.repository.UserRepo;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class EmailService {
@@ -30,16 +31,20 @@ public class EmailService {
         String result;
         try{
             Email map = modelMapper.map(emailDto, Email.class);
-            User from = userRepo.findByMailAddress(map.getFrom());
-            from.getSentMails().add(map);
-            userRepo.save(from);
-            User to = userRepo.findByMailAddress(map.getTo());
-            to.getReceivedMails().add(map);
-            userRepo.save(to);
+            Optional<User> from = userRepo.findByMailAddress(map.getFrom());
+            if (from.isPresent()) {
+                from.get().getSentMails().add(map);
+                userRepo.save(from.get());
+            }
+            Optional<User> to = userRepo.findByMailAddress(map.getTo());
+            if (to.isPresent()) {
+                to.get().getReceivedMails().add(map);
+                userRepo.save(to.get());
+            }
             map.setSentAt(LocalDateTime.now().toString());
             map.setStatus("SENT");
             emailRepo.save(map);
-            log.info("Sent mail at: " + map.getSentAt());
+            log.info("Sent mail at: {}", map.getSentAt());
             result = "Mail Sent";
         }
         catch(Exception e){
@@ -48,5 +53,6 @@ public class EmailService {
         }
         return result;
     }
+
 
 }
