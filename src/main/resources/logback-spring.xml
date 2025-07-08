@@ -30,6 +30,17 @@
         </encoder>
     </appender>
 
+    <appender name="MESSAGE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/messageSender/messages.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/messageSender/messages-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
 
     <!-- Custom logger for user creation -->
     <logger name="usercreation" level="DEBUG" additivity="false">
@@ -38,6 +49,10 @@
 
     <logger name="emailcreation" level="DEBUG" additivity="false">
         <appender-ref ref="EMAIL_CREATION"/>
+    </logger>
+
+    <logger name="message" level = "DEBUG" additivity="false">
+        <appender-ref ref="MESSAGE"/>
     </logger>
 
     <!-- Console (optional) -->
