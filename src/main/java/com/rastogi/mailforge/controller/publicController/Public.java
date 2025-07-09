@@ -2,7 +2,6 @@ package com.rastogi.mailforge.controller.publicController;
 
 
 import com.rastogi.mailforge.dto.UserDto;
-import com.rastogi.mailforge.dto.request.PhoneVerificationDto;
 import com.rastogi.mailforge.service.user.UserCrudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

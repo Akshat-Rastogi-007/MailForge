@@ -19,7 +19,7 @@ public class OtpCreation {
         this.otpRepository = otpRepository;
     }
 
-    private static Logger log = LoggerFactory.getLogger("message");
+    private static final Logger log = LoggerFactory.getLogger("message");
 
 
     public String generateOtp(String userId, String phone) {
