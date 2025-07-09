@@ -44,9 +44,8 @@ public class MessagingService {
         }
         catch (com.twilio.exception.ApiException e) {
             if (e.getCode() == 21211) {
-                // 21211 = invalid 'To' phone number
                 log.error("Invalid phone number: {}", toPhoneNumber);
-                result = "Invalid phone number. Please check the number and try again.";
+                result = "Invalid phone number";
             } else {
                 log.error("Twilio API error: {}", e.getMessage());
                 result = "SMS failed: " + e.getMessage();

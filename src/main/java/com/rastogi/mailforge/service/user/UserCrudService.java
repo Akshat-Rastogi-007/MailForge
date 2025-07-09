@@ -23,6 +23,8 @@ public class UserCrudService {
 
     private static final Logger log = LoggerFactory.getLogger("usercreation");
 
+    private static final Logger loginLog = LoggerFactory.getLogger("login");
+
     static int ids= 0;
     public UserCrudService(UserRepo userRepo, ModelMapper modelMapper, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepo = userRepo;
@@ -43,7 +45,7 @@ public class UserCrudService {
             log.info("Created user with mail address {}", map.getMailAddress());
             result = "User Created Successfully";
         } catch (Exception e) {
-            log.error("Error while creating user with mail address {}", userDto.getMailAddress());
+            log.error("Error while creating user with mail address {} error {}", userDto.getMailAddress(), e.getMessage());
             result = "Error while creating user";
         }
         return result;
@@ -115,5 +117,21 @@ public class UserCrudService {
         return false;
     }
 
+    public UserResponseDto loginResponse(String email){
+        UserResponseDto map = null;
+        try {
+            Optional<User> byMailAddress = userRepo.findByMailAddress(email);
+            if (byMailAddress.isPresent()){
+                User user = byMailAddress.get();
+                map = modelMapper.map(user, UserResponseDto.class);
+                loginLog.info("UserResponseDto created with userId {}", user.getMailAddress());
+                return map;
+            }
+            return map;
+        } catch (Exception e) {
+            loginLog.error("Error while logging in due to {}", e.getMessage());
+            return map;
+        }
+    }
 
 }

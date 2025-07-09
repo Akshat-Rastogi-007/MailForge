@@ -16,10 +16,10 @@ import java.time.LocalDateTime;
 public class OtpEntry {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private String id;
     private String userId;
     private String otp;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
+    private String phone;
 }

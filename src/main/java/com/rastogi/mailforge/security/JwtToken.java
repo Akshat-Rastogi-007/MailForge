@@ -19,7 +19,7 @@ import java.util.function.Function;
 @Component
 public class JwtToken {
 
-    public String generateMyToken(UserDetailImpl userDetails) {
+    public String generateMyToken(UserDetails userDetails) {
         List<String> roles = new ArrayList<>();
 
         for (GrantedAuthority authority : userDetails.getAuthorities()) {

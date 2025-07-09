@@ -7,9 +7,12 @@ import java.util.List;
 
 @Data
 public class UserResponseDto {
+
     private String name;
     private String mailAddress;
     private String phone;
-    private List<Email> emails;
-    private List<Email> receivedEmails;
+    private List<Email> sentMails;
+    private List<Email> receivedMails;
+    private Boolean verified;
+
 }

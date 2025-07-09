@@ -22,13 +22,15 @@ public class OtpCreation {
     private static Logger log = LoggerFactory.getLogger("message");
 
 
-    public String generateOtp(String userId) {
+    public String generateOtp(String userId, String phone) {
         String result;
         try {
             String otp = String.format("%06d", random.nextInt(999999)); // 6-digit OTP
             OtpEntry otpEntry = new OtpEntry();
+            otpEntry.setId("OTP"+userId);
             otpEntry.setOtp(otp);
             otpEntry.setUserId(userId);
+            otpEntry.setPhone(phone);
             otpEntry.setCreatedAt(LocalDateTime.now());
             otpEntry.setExpiresAt(LocalDateTime.now().plusMinutes(5));
             otpRepository.save(otpEntry);

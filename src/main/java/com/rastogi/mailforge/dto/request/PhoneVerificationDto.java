@@ -8,7 +8,7 @@ import lombok.Data;
 public class PhoneVerificationDto {
 
 
-    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid Indian phone number")
+    @Pattern(regexp = "^[+]?91[6-9]\\d{9}$", message = "Invalid phone number")
     private String phone;
 
 }

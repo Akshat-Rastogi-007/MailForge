@@ -51,6 +51,7 @@ public class OtpValidation {
                 if (userOptional.isPresent()) {
                     User user = userOptional.get();
                     user.setVerified(true);
+                    user.setPhone(entry.getPhone());
                     userRepo.save(user);
                     log.info("Otp validated for userId {}", userId);
                     result = "Otp validated";

@@ -33,7 +33,7 @@ public class Public {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Mail Address already exists");
             }
             String result = userCrudService.createUser(userDto);
-            if (result.equals("User created successfully")){
+            if (result.equals("User Created Successfully")){
                 log.info("User created successfully with mail address {}", userDto.getMailAddress());
                 return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully");
             }

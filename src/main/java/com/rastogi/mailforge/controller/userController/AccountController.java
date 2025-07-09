@@ -29,29 +29,23 @@ public class AccountController {
         this.messagingService = messagingService;
     }
 
-    @GetMapping("/add-phone")
+    @PostMapping("/add-phone")
     public ResponseEntity<?> verifyPhone(@RequestBody PhoneVerificationDto phoneVerificationDto) {
         try {
             UserDetailImpl userDetailImpl = (UserDetailImpl)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             String id = userDetailImpl.getUser().getId();
             String phone = phoneVerificationDto.getPhone();
-            String otp = otpCreation.generateOtp(id);
+            String otp = otpCreation.generateOtp(id, phone);
             if(otp.equals("OTP creation failed")) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
             String result = messagingService.sendMessage(phone, otp);
-            
-            
-            if(result.equals("Invalid Number")) {
+            if(result.equals("Invalid phone number")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid phone number. Please check the number and try again.");
             }
-            
-            
             else if (result.equals("Message sent")){
                 return ResponseEntity.status(HttpStatus.OK).body(result);
             }
-            
-            
             else{
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
@@ -68,7 +62,7 @@ public class AccountController {
             UserDetailImpl userDetailImpl = (UserDetailImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             String id = userDetailImpl.getUser().getId();
 
-            String result = otpValidation.validateOtp(id, otp.getOtp());
+            String result = otpValidation.validateOtp(otp.getOtp(), id);
 
             return switch (result) {
                 case "Otp validated" -> ResponseEntity.ok("Phone Number Verified");
