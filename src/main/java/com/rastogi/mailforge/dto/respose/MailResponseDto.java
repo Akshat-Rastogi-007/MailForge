@@ -10,4 +10,5 @@ public class MailResponseDto {
     private String subject;
     private String body;
     private String sentAt;
+
 }

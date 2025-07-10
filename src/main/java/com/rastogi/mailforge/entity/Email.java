@@ -31,4 +31,7 @@ public class Email {
     private boolean isDeleted = false;
     private boolean isRead = false;
     private String sentAt;
+    
+    private boolean deleteForSender = false;
+    private boolean deleteForReceiver = false;
 }

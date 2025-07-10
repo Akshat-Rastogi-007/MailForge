@@ -35,7 +35,7 @@ public class MailServiceController {
 
     @GetMapping("/sent-mail")
     public ResponseEntity<?> sentMails(){
-        List<MailResponseDto> allMail = emailService.getAllMail();
+        List<MailResponseDto> allMail = emailService.getSentMail();
         if (allMail.isEmpty()) {
             return new ResponseEntity<>("No mail found", HttpStatus.NOT_FOUND);
         } else {
@@ -52,4 +52,42 @@ public class MailServiceController {
             return new ResponseEntity<>(allMail, HttpStatus.OK);
         }
     }
+
+    @DeleteMapping("/soft-delete")
+    public ResponseEntity<?> softDeleteMail(@RequestParam String mailId){
+        String result = emailService.softDeleteMail(mailId);
+        if (result.equals("Successfully deleted mail ")) {
+            return  new ResponseEntity<>(result, HttpStatus.OK);
+        }
+        else if (result.equals("No such mail found.")) {
+            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        }
+        else {
+            return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/trash")
+    public ResponseEntity<?> getSoftDeletedMail(){
+        List<MailResponseDto> allSoftDeletedMail = emailService.getAllSoftDeletedMail();
+        if (allSoftDeletedMail.isEmpty()) {
+            return new ResponseEntity<>("No mail found", HttpStatus.NOT_FOUND);
+        }
+        else{
+            return new ResponseEntity<>(allSoftDeletedMail, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/all-mails")
+    public ResponseEntity<?> getAllMails(){
+        List<MailResponseDto> allMails = emailService.getAllMails();
+        if (allMails.isEmpty()) {
+            return new ResponseEntity<>("No mail found", HttpStatus.NOT_FOUND);
+        }
+        else{
+            return new ResponseEntity<>(allMails, HttpStatus.OK);
+        }
+    }
+
+
 }
