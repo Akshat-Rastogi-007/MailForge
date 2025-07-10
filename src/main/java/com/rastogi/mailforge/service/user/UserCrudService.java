@@ -1,5 +1,6 @@
 package com.rastogi.mailforge.service.user;
 
+import com.rastogi.mailforge.config.KeyGeneration;
 import com.rastogi.mailforge.dto.UserDto;
 import com.rastogi.mailforge.dto.respose.UserResponseDto;
 import com.rastogi.mailforge.entity.User;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,12 +37,22 @@ public class UserCrudService {
     public String createUser(UserDto userDto) {
         String result;
         try {
+
+            KeyPair keyPair = KeyGeneration.generateKeyPair();
             User map = modelMapper.map(userDto, User.class);
+
+
             // here phone verification will take place
+
             map.setMailAddress(map.getMailAddress() + "@mailforge.local");
             map.setId("USER-"+ map.getMailAddress() + ++ids);
             map.setPassword(bCryptPasswordEncoder.encode(userDto.getPassword()));
             map.getRole().add("ROLE_USER");
+
+            map.setPrivateKey(KeyGeneration.encodeKey(keyPair.getPrivate()));
+            map.setPublicKey(KeyGeneration.encodeKey(keyPair.getPublic()));
+
+
             userRepo.save(map);
             log.info("Created user with mail address {}", map.getMailAddress());
             result = "User Created Successfully";

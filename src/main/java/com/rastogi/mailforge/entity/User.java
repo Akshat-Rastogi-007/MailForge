@@ -20,13 +20,19 @@ public class User {
 
     private List<String> role = new ArrayList<>();
 
-    @OneToMany(mappedBy = "sender")
+    @OneToMany(mappedBy = "sender", fetch = FetchType.EAGER)
     @JsonIgnore
     private List<Email> sentMails;
 
-    @OneToMany(mappedBy = "receiver")
+    @OneToMany(mappedBy = "receiver", fetch = FetchType.EAGER)
     @JsonIgnore
     private List<Email> receivedMails;
 
     private boolean verified = false;
+
+    @Lob
+    private String publicKey;
+
+    @Lob
+    private String privateKey;
 }

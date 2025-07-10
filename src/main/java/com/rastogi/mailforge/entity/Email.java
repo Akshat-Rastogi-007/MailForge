@@ -1,9 +1,6 @@
 package com.rastogi.mailforge.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
@@ -12,12 +9,16 @@ public class Email {
 
     @Id
     private String id;
-    private String senderAddress;
     private String receiverAddress;
     private String subject;
     private String body;
-    private String sentAt;
-    private String status;
+
+    @Lob
+    private String wrappedKeyForSender;
+
+    @Lob
+    private String wrappedKeyForReceiver;
+
 
     @ManyToOne
     @JoinColumn(name = "sender_id")
@@ -26,4 +27,8 @@ public class Email {
     @ManyToOne
     @JoinColumn(name = "receiver_id")
     private User receiver;
+
+    private boolean isDeleted = false;
+    private boolean isRead = false;
+    private String sentAt;
 }
