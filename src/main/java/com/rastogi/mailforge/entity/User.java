@@ -22,11 +22,11 @@ public class User {
 
     @OneToMany(mappedBy = "sender", fetch = FetchType.EAGER)
     @JsonIgnore
-    private List<Email> sentMails;
+    private List<Email> sentMails = new ArrayList<>();
 
     @OneToMany(mappedBy = "receiver", fetch = FetchType.EAGER)
     @JsonIgnore
-    private List<Email> receivedMails;
+    private List<Email> receivedMails = new ArrayList<>();
 
     private boolean verified = false;
 

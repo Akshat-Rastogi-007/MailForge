@@ -11,6 +11,7 @@ import com.rastogi.mailforge.config.KeyGeneration;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -45,38 +46,27 @@ public class EmailService {
             User sender = principal.getUser();
             String receiverMail = emailDto.getReceiverAddress();
             Optional<User> receiverOptional = userRepo.findByMailAddress(receiverMail);
+
             if (receiverOptional.isEmpty()) {
-                result = "Check sender mail address, no such mail found";
-            } else {
-                User receiver = receiverOptional.get();
-
-                PublicKey senderPublicKey = KeyGeneration.decodePublicKey(sender.getPublicKey());
-                PublicKey receiverPublicKey = KeyGeneration.decodePublicKey(receiver.getPublicKey());
-
-                SecretKey aesKey = KeyGeneration.generateAESKey();
-                String encryptedSubject = KeyGeneration.encryptAES(emailDto.getSubject(), aesKey);
-                String encryptedBody = KeyGeneration.encryptAES(emailDto.getBody(), aesKey);
-
-                String wrappedKeyForSender = KeyGeneration.encryptAESKey(aesKey, senderPublicKey);
-                String wrappedKeyForReceiver = KeyGeneration.encryptAESKey(aesKey, receiverPublicKey);
-
-                Email email = modelMapper.map(emailDto, Email.class);
-                email.setId("EMAIL" + sender.getMailAddress().substring(0, sender.getMailAddress().indexOf("@")) + ids++);
-                email.setSender(sender);
-                email.setReceiver(receiver);
-                email.setSubject(encryptedSubject);
-                email.setBody(encryptedBody);
-                email.setWrappedKeyForSender(wrappedKeyForSender);
-                email.setWrappedKeyForReceiver(wrappedKeyForReceiver);
-                email.setSentAt(LocalDateTime.now().toString());
-                email.setRead(false);
-                email.setDeleted(false);
-                emailRepo.save(email);
-                userRepo.save(sender);
-                userRepo.save(receiver);
-                log.info("Encrypted email sent from {} to {}", sender.getMailAddress(), receiverMail);
-                result = "Email sent successfully";
+                log.warn("No receiver address found for {}", receiverMail);
+                return "Check receiver mail address, no such mail found";
             }
+
+            User receiver = receiverOptional.get();
+            String emailId = "EMAIL" + sender.getMailAddress().split("@")[0] + ids++;
+
+            Email email = encryptAndPrepareEmail(emailDto, sender, receiver, emailId);
+            email.setSentAt(LocalDateTime.now());
+            email.setRead(false);
+            email.setDeleted(false);
+            email.setStatus("SENT");
+
+            emailRepo.save(email);
+            userRepo.save(sender);
+            userRepo.save(receiver);
+
+            log.info("Encrypted email sent from {} to {}", sender.getMailAddress(), receiverMail);
+            result = "Email sent successfully";
         }
         catch (Exception e) {
             result = "Something went wrong while sending email";
@@ -244,5 +234,154 @@ public class EmailService {
         }
     }
 
+    public String undoDeleteMail(String mailId) {
+        try {
+            UserDetailImpl principal = (UserDetailImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            User user = principal.getUser();
+
+            List<Email> receivedMails = user.getReceivedMails();
+            for (Email email : receivedMails) {
+                if (email.getId().equals(mailId)) {
+                    email.setDeleteForReceiver(false);
+                    emailRepo.save(email);
+                    log.info("Mail has been restored (receiver side) with id {}", mailId);
+                    return "Mail has been restored";
+                }
+            }
+
+            List<Email> sentMails = user.getSentMails();
+            for (Email email : sentMails) {
+                if (email.getId().equals(mailId)) {
+                    email.setDeleteForSender(false);
+                    emailRepo.save(email);
+                    log.info("Mail has been restored (sender side) with id {}", mailId);
+                    return "Mail has been restored";
+                }
+            }
+
+            log.warn("No mail found with id {} while restoring mail", mailId);
+            return "No such mail found.";
+
+        } catch (Exception e) {
+            log.error("Failed to restore mail with id {}: {}", mailId, e.getMessage());
+            return "Failed to restore mail.";
+        }
+    }
+
+    public String permanentDeleteMail(String mailId) {
+        try {
+            UserDetailImpl principal = (UserDetailImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            User user = principal.getUser();
+            List<Email> receivedMails = user.getReceivedMails();
+            for (Email email : receivedMails) {
+                if (email.getId().equals(mailId)) {
+                   emailRepo.delete(email);
+                    log.info("Mail has been DELETED with id {} (RECEIVED MAIL)", mailId);
+                    return "Mail has been DELETED";
+                }
+            }
+
+            List<Email> sentMails = user.getSentMails();
+            for (Email email : sentMails) {
+                if (email.getId().equals(mailId)) {
+                    emailRepo.delete(email);
+                    log.info("Mail has been DELETED with id {} (SENT MAIL)", mailId);
+                    return "Mail has been DELETED";
+                }
+            }
+            log.warn("No mail found with id {} while DELETING mail", mailId);
+            return "No such mail found.";
+        }
+        catch (Exception e) {
+            log.error("Failed to DELETE mail with id {}: {}", mailId, e.getMessage());
+            return "Failed to DELETE mail.";
+        }
+    }
+
+    public String saveEmail(EmailDto emailDto) {
+        try{
+            UserDetailImpl principal = (UserDetailImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            User sender = principal.getUser();
+            Optional<User> byMailAddress = userRepo.findByMailAddress(emailDto.getReceiverAddress());
+            if(byMailAddress.isEmpty()) {
+                log.warn("No mail address found with id {}", emailDto.getReceiverAddress());
+                return "Check receiver mail address, no such mail found";
+            }
+            User receiver = byMailAddress.get();
+            String emailId = "EMAIL" + sender.getMailAddress().split("@")[0] + ids++;
+            Email email = encryptAndPrepareEmail(emailDto, sender, receiver, emailId);
+            sender.getSentMails().add(email);
+            email.setSender(sender);
+            email.setReceiver(receiver);
+            email.setSentAt(emailDto.getScheduledTime());
+            email.setStatus("PENDING");
+            userRepo.save(sender);
+            emailRepo.save(email);
+            return "Email saved successfully";
+        }
+        catch (Exception e) {
+            log.error("Failed to save email with id {}: {}", emailDto.getReceiverAddress(), e.getMessage());
+            return "Failed to save email.";
+        }
+    }
+
+    @Scheduled(fixedRate = 60000)
+    public String scheduledTimeSent() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Email> pendingEmails = emailRepo.findByStatusAndScheduledTimeLessThanEqual("PENDING", now);
+
+        if (pendingEmails.isEmpty()) {
+            return "No pending emails found";
+        }
+
+        int successCount = 0;
+        int failCount = 0;
+
+        for (Email email : pendingEmails) {
+            try {
+                User receiver = email.getReceiver();
+                receiver.getReceivedMails().add(email);
+
+                email.setStatus("SENT");
+
+                emailRepo.save(email);
+                userRepo.save(receiver);
+
+                log.info("Scheduled email {} sent to {}", email.getId(), receiver.getMailAddress());
+                successCount++;
+            } catch (Exception e) {
+                log.error("Failed to send scheduled mail {}: {}", email.getId(), e.getMessage());
+                failCount++;
+            }
+        }
+
+        return "Scheduled email processing complete. Success: " + successCount + ", Failed: " + failCount;
+    }
+
+
+    public Email encryptAndPrepareEmail(EmailDto emailDto, User sender, User receiver, String emailId) throws Exception {
+
+        PublicKey senderPublicKey = KeyGeneration.decodePublicKey(sender.getPublicKey());
+        PublicKey receiverPublicKey = KeyGeneration.decodePublicKey(receiver.getPublicKey());
+
+        SecretKey aesKey = KeyGeneration.generateAESKey();
+        String encryptedSubject = KeyGeneration.encryptAES(emailDto.getSubject(), aesKey);
+        String encryptedBody = KeyGeneration.encryptAES(emailDto.getBody(), aesKey);
+
+        String wrappedKeyForSender = KeyGeneration.encryptAESKey(aesKey, senderPublicKey);
+        String wrappedKeyForReceiver = KeyGeneration.encryptAESKey(aesKey, receiverPublicKey);
+
+        Email email = modelMapper.map(emailDto, Email.class);
+        email.setId(emailId);
+        email.setSender(sender);
+        email.setReceiver(receiver);
+        email.setSubject(encryptedSubject);
+        email.setBody(encryptedBody);
+        email.setWrappedKeyForSender(wrappedKeyForSender);
+        email.setWrappedKeyForReceiver(wrappedKeyForReceiver);
+
+
+        return email;
+    }
 
 }

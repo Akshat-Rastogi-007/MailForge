@@ -89,5 +89,41 @@ public class MailServiceController {
         }
     }
 
+    @DeleteMapping("/permanent-delete")
+    public ResponseEntity<?> permanentDeleteMail(@RequestParam String mailId){
+        String result = emailService.permanentDeleteMail(mailId);
+        if (result.equals("Mail has been DELETED")) {
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+        else if (result.equals("No such mail found.")) {
+            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        }
+        else {
+            return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/restore-mail")
+    public ResponseEntity<?> restoreMail(@RequestParam String mailId){
+        String result = emailService.undoDeleteMail(mailId);
+        if (result.equals("Mail has been restored")) {
+            return new ResponseEntity<>("Mail has been restored", HttpStatus.OK);
+        }
+        else if (result.equals("No such mail found.")) {
+            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        }
+        else{
+            return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/scheduled-mail")
+    public ResponseEntity<?> scheduledMail(@RequestBody EmailDto emailDto) {
+        String result = emailService.saveEmail(emailDto);
+        if (result.equals("Email saved successfully")) {
+            return new ResponseEntity<>("Email will be send on given time", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Failed to save email.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
 }

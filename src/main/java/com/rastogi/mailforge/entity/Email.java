@@ -3,6 +3,8 @@ package com.rastogi.mailforge.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Entity
 public class Email {
@@ -30,8 +32,12 @@ public class Email {
 
     private boolean isDeleted = false;
     private boolean isRead = false;
-    private String sentAt;
+
+    private String status;
+    private LocalDateTime sentAt;
     
     private boolean deleteForSender = false;
     private boolean deleteForReceiver = false;
+    private LocalDateTime scheduledTime;
+
 }
